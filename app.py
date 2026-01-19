@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import os
 import requests
 import pycountry
@@ -57,12 +57,8 @@ def get_gspread_client():
         "https://www.googleapis.com/auth/drive",
     ]
     creds_dict = dict(st.secrets["gcp_service_account"])
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(
-        creds_dict,
-        scope,
-    )
-
-    return gspread.authorize(creds)
+    credentials = Credentials.from_service_account_info(creds_dict, scopes=scope)
+    return gspread.authorize(credentials)
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_master_library():
@@ -319,18 +315,22 @@ def initialize_app():
 # --- 4. USER CONTEXT & STORAGE ---
 
 def get_user_context():
-    is_logged_in = hasattr(st, "user") and st.user.is_logged_in
+    is_logged_in = False
+    if hasattr(st, "user"):
+        try:
+            is_logged_in = getattr(st.user, "is_logged_in", False)
+        except Exception:
+            is_logged_in = False
     if is_logged_in:
-        uid = (
-            st.user.email
-            .replace("@", "_")
-            .replace(".", "_")
-        )
-        return (
-            f"user_data/rank__{uid}.csv",
-            st.user.name,
-            True,
-        )
+        email = getattr(st.user, "email", None)
+        name = getattr(st.user, "name", "Guest")
+        if email:
+            uid = email.replace("@", "_").replace(".", "_")
+            return (
+                f"user_data/rank__{uid}.csv",
+                name,
+                True,
+            )
     return (
         "guest_rankings.csv",
         "Guest",
