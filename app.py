@@ -28,11 +28,11 @@ ADMIN_EMAILS = {
 }
 
 def is_admin():
-    return (
-        hasattr(st, "user")
-        and st.user.is_logged_in
-        and st.user.email in ADMIN_EMAILS
-    )
+    if not hasattr(st, "user"):
+        return False
+    if not getattr(st.user, "email", None):
+        return False
+    return st.user.email in ADMIN_EMAILS
 
 # Stable helper (NOT wired yet)
 def image_version_key(name: str) -> str:
@@ -50,19 +50,19 @@ st.set_page_config(
 
 
 # --- 2. DATA ENGINES ---
-
 @st.cache_resource(show_spinner=False)
 def get_gspread_client():
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
     ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        "data/service_account.json",
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(
+        creds_dict,
         scope,
     )
-    return gspread.authorize(creds)
 
+    return gspread.authorize(creds)
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_master_library():
