@@ -11,8 +11,8 @@ No library import, Google credentials or account is needed. The app groups bottl
 
 Personal rankings remain on this device. Rankings/ignored CSV imports and full JSON backup/restore are available for transferring personal data. Archive refresh never rewrites personal ranking order or saved scores. Prices and Value are unavailable because the archive does not provide reliable currency metadata.
 
-Google login and account synchronization are not connected. Bottle artwork uses placeholders. Currency conversion uses live exchange rates with a labelled USD fallback.
+Google login and account synchronization are not connected. Bottle images use the original Bing lookup with a 30-day IndexedDB cache, lazy loading and a Refresh image control. Currency conversion uses live exchange rates with a labelled USD fallback.
 
-GitHub Actions deploys only index.html, styles.css, logic.js, web.js, archive.js and Logo.png to Pages on pushes to main. Private data is excluded from deployment and version control.
+GitHub Actions deploys only index.html, styles.css, logic.js, web.js, archive.js, images.js and Logo.png to Pages on pushes to main. Private data is excluded from deployment and version control.
 
 Validation: JavaScript syntax checks and node logic.test.cjs.

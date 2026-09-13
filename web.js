@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = 3;
+const APP_VERSION = 4;
 const KEY = 'dramtrack.browser.v1';
 const L = window.DramLogic;
 const $ = id => document.getElementById(id);
@@ -24,6 +24,9 @@ function price(value) {
   const curr = rates[state.currency] ? state.currency : 'USD';
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: curr }).format(value * (rates[curr] || 1));
 }
+function bottleArt(name, small = false) {
+  return `<span class="bottle-photo ${small ? 'bottle-thumb' : ''}" data-bottle-image="${escapeHtml(name)}"><span class="image-loading">Loading image...</span></span>`;
+}
 function bottle(name) { return state.library.find(r => L.norm(r.Name) === L.norm(name)); }
 function render() {
   $('setup').hidden = !!state.library.length;
@@ -34,16 +37,16 @@ function render() {
   $('rates-status').textContent = state.currency === 'USD' ? 'Library prices are in USD.' : rates[state.currency] ? 'Prices use the latest exchange rates fetched for this session.' : 'Exchange rates unavailable. Prices are shown in USD.';
   $('collection').innerHTML = state.rankings.length ? `<div class="table-wrap"><table><thead><tr><th>RANK</th><th>BOTTLE</th><th>INTERNAL SCORE</th><th>PRICE</th><th>VALUE</th><th></th></tr></thead><tbody>${state.rankings.map((r, i) => {
     const b = bottle(r.Name);
-    return `<tr><td class="rank">${i + 1}</td><td><button class="name-button" data-detail-rank="${i}">${escapeHtml(r.Name)}</button><div class="subtle">${escapeHtml(b?.Distillery || '')}</div></td><td>${r.Internal_Score.toFixed(2)}</td><td>${b ? price(b.Price) : '—'}</td><td>${b ? (b.Value ? b.Value.toFixed(2) : '\u2014') : '—'}</td><td><button data-remove="${i}" aria-label="Remove ${escapeHtml(r.Name)}" ${duel ? 'disabled' : ''}>Remove</button></td></tr>`;
+    return `<tr><td class="rank">${i + 1}</td><td><div class="collection-bottle">${bottleArt(r.Name, true)}<div><button class="name-button" data-detail-rank="${i}">${escapeHtml(r.Name)}</button><div class="subtle">${escapeHtml(b?.Distillery || '')}</div></div></div></td><td>${r.Internal_Score.toFixed(2)}</td><td>${b ? price(b.Price) : '—'}</td><td>${b ? (b.Value ? b.Value.toFixed(2) : '\u2014') : '—'}</td><td><button data-remove="${i}" aria-label="Remove ${escapeHtml(r.Name)}" ${duel ? 'disabled' : ''}>Remove</button></td></tr>`;
   }).join('')}</tbody></table></div>` : '<div class="empty">Your shelf starts with one bottle.<br>Search above for a whiskey you’ve tried.</div>';
   const recs = L.recommendations(state.library, state.rankings, state.ignored);
   $('recommendation-section').hidden = !state.rankings.length || !recs.length || !!duel;
   $('recommendations').innerHTML = recs.map(r => {
     const i = state.library.indexOf(r);
-    return `<article class="bottle-card"><div class="bottle-art" aria-hidden="true">🥃</div><button class="name-button" data-detail="${i}">${escapeHtml(r.Name)}</button><p class="subtle">Rating ${r.Rating.toFixed(2)} · ${escapeHtml(price(r.Price))}</p><div class="actions"><button class="primary" data-try="${i}">Tried it</button><button data-ignore="${i}" aria-label="Ignore ${escapeHtml(r.Name)}">✕</button></div></article>`;
+    return `<article class="bottle-card">${bottleArt(r.Name)}<button class="name-button" data-detail="${i}">${escapeHtml(r.Name)}</button><p class="subtle">Rating ${r.Rating.toFixed(2)} · ${escapeHtml(price(r.Price))}</p><div class="actions"><button class="primary" data-try="${i}">Tried it</button><button data-refresh-image="${escapeHtml(r.Name)}" class="image-refresh" title="Fetch a fresh image">Refresh image</button><button data-ignore="${i}" aria-label="Ignore ${escapeHtml(r.Name)}">✕</button></div></article>`;
   }).join('');
   $('ignored').innerHTML = state.ignored.length ? state.ignored.map((name, i) => `<div><span>${escapeHtml(name)}</span><button data-unignore="${i}">Restore</button></div>`).join('') : '<p>No ignored bottles.</p>';
-  renderSearch(); renderDuel();
+  renderSearch(); renderDuel(); DramImages.mount();
 }
 function renderSearch() {
   const query = L.norm($('search').value);
@@ -72,12 +75,12 @@ function renderDuel() {
     $('duel').innerHTML = '<h2>Ready to save your ranking</h2><button id="retry-save" class="primary">Retry save</button> <button id="cancel-duel">Cancel</button>'; return;
   }
   const other = state.rankings[Math.floor((duel.low + duel.high) / 2)].Name;
-  $('duel').innerHTML = `<p class="eyebrow">TRUST YOUR TASTE</p><h2>Which do you prefer?</h2><div class="duel-cards"><button data-choice="new">${escapeHtml(duel.name)}<span>I prefer this one</span></button><button data-choice="old">${escapeHtml(other)}<span>I prefer this one</span></button></div><p><button id="cancel-duel">Cancel ranking</button></p>`;
+  $('duel').innerHTML = `<p class="eyebrow">TRUST YOUR TASTE</p><h2>Which do you prefer?</h2><div class="duel-cards"><button data-choice="new">${bottleArt(duel.name)}${escapeHtml(duel.name)}<span>I prefer this one</span></button><button data-choice="old">${bottleArt(other)}${escapeHtml(other)}<span>I prefer this one</span></button></div><p><button id="cancel-duel">Cancel ranking</button></p>`;
 }
 function detail(name) {
   const b = bottle(name);
-  $('detail-content').innerHTML = `<div class="bottle-art" aria-hidden="true">🥃</div><h2>${escapeHtml(name)}</h2>${b ? `<p>${escapeHtml(b.Distillery)}</p><p>Library rating: ${b.Rating.toFixed(2)} · ${b.Count} reviews</p><p>${escapeHtml(price(b.Price))} · Value ${(b.Value ? b.Value.toFixed(2) : '\u2014')}</p>` : '<p>This bottle is not in the current library.</p>'}<h3>Community tasting notes</h3><p>No community notes available yet.</p>`;
-  $('detail').showModal();
+  $('detail-content').innerHTML = `${bottleArt(name)}<button data-refresh-image="${escapeHtml(name)}">Refresh image</button><h2>${escapeHtml(name)}</h2>${b ? `<p>${escapeHtml(b.Distillery)}</p><p>Library rating: ${b.Rating.toFixed(2)} · ${b.Count} reviews</p><p>${escapeHtml(price(b.Price))} · Value ${(b.Value ? b.Value.toFixed(2) : '\u2014')}</p>` : '<p>This bottle is not in the current library.</p>'}<h3>Community tasting notes</h3><p>No community notes available yet.</p>`;
+  $('detail').showModal(); DramImages.mount($('detail'));
 }
 function download(name, contents, type) {
   const url = URL.createObjectURL(new Blob([contents], { type }));
@@ -108,10 +111,11 @@ document.addEventListener('click', event => {
   const button = event.target.closest('button'); if (!button) return;
   const d = button.dataset;
   if (d.close) $(d.close).close();
+  else if (d.refreshImage !== undefined) { button.disabled = true; DramImages.refresh(d.refreshImage).finally(() => { button.disabled = false; }); }
   else if (d.try !== undefined) startDuel(state.library[Number(d.try)].Name);
   else if (d.detail !== undefined) detail(state.library[Number(d.detail)].Name);
   else if (d.detailRank !== undefined) detail(state.rankings[Number(d.detailRank)].Name);
-  else if (d.choice && duel) { duel = L.choose(duel, d.choice === 'new'); if (duel.low > duel.high) finishDuel(); else renderDuel(); }
+  else if (d.choice && duel) { duel = L.choose(duel, d.choice === 'new'); if (duel.low > duel.high) finishDuel(); else { renderDuel(); DramImages.mount(); } }
   else if (button.id === 'retry-save') finishDuel();
   else if (button.id === 'cancel-duel') { duel = null; render(); }
   else if (d.remove !== undefined && !duel) {
