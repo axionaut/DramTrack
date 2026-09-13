@@ -156,4 +156,3 @@ window.addEventListener('storage', event => {
   catch { storageBlocked = true; notice('Saved data changed in another tab and could not be read. Reload or restore a backup.'); }
 });
 render(); loadRates();
-

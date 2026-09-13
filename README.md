@@ -2,7 +2,7 @@
 
 A static browser app hosted on GitHub Pages. No Python, backend, installation or build step.
 
-Site: https://nitinjoshi4u-crypto.github.io/DramTrack/
+Site: https://axionaut.github.io/DramTrack/
 
 Import the Whiskeys Google Sheet as CSV using Settings & data. Required columns: Name and Rating; optional columns: Count, Price, Value, Distillery. Import existing rankings and ignored-bottle CSVs from Settings & data. Personal data stays in the browser; download a full backup to transfer it between devices.
 
