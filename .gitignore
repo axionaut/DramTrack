@@ -1,1 +1,6 @@
-data/service_account.json
+user_data/
+*Secret*
+*.pem
+.env
+.env.*
+_site/

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#171b18">
+  <title>DramTrack</title>
+  <link rel="icon" href="Logo.png"><link rel="stylesheet" href="styles.css?v=2">
+  <script defer src="logic.js?v=2"></script><script defer src="web.js?v=2"></script>
+</head>
+<body>
+  <header><a class="brand" href="./"><img src="Logo.png" alt="">DramTrack<span>YOUR WHISKEY JOURNAL</span></a><button id="settings-button">Settings & data</button></header>
+  <main>
+    <section class="intro"><p class="eyebrow">GOOD TASTE IS PERSONAL</p><h1>Find your next favourite.</h1><p>Keep the bottles you’ve tried in the order you love them.</p></section>
+    <p id="notice" role="status" hidden></p>
+    <section id="setup" class="panel" hidden><h2>Start with your whiskey library</h2><p>Export the Whiskeys tab from Google Sheets as CSV, then import it here. Your library and rankings are saved in this browser.</p><button id="setup-import" class="primary">Import library CSV</button></section>
+    <section id="add-panel" class="panel"><label for="search">TRIED SOMETHING NEW?</label><div class="search-row"><input id="search" type="search" placeholder="Search your whiskey library…" autocomplete="off"><span id="library-count"></span></div><div id="search-results"></div></section>
+    <section id="duel" class="panel" hidden aria-live="polite"></section>
+    <section><div class="section-head"><div><p class="eyebrow">YOUR TASTE, YOUR ORDER</p><h2>My collection <span id="collection-count"></span></h2></div><button id="export-rankings">Export rankings</button></div><div id="collection"></div></section>
+    <section id="recommendation-section" hidden><div class="section-head"><div><p class="eyebrow">A LITTLE FURTHER UP THE SHELF</p><h2>Next to try</h2></div></div><div id="recommendations" class="cards"></div></section>
+    <footer>DramTrack · v1 · Saved on this device</footer>
+  </main>
+  <dialog id="settings"><div class="section-head"><h2>Settings & data</h2><button data-close="settings" aria-label="Close settings">✕</button></div><label for="currency">Display currency</label><select id="currency"><option>USD</option><option>INR</option><option>EUR</option><option>GBP</option><option>JPY</option><option>CAD</option><option>AUD</option></select><p id="rates-status"></p><h3>Your data</h3><p>Back up this browser’s data before moving devices. Google login and account sync are not connected yet.</p><div class="actions"><button id="import-library">Import library CSV</button><button id="import-rankings">Import rankings CSV</button><button id="import-ignored">Import ignored CSV</button><button id="backup">Download full backup</button><button id="restore">Restore backup</button></div><h3>Ignored bottles</h3><div id="ignored"></div></dialog>
+  <dialog id="detail"><div id="detail-content"></div><button data-close="detail">Close</button></dialog>
+  <input id="file" type="file" hidden accept=".csv,text/csv">
+</body></html>
+
