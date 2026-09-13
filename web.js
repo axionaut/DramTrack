@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = 5;
+const APP_VERSION = 6;
 const KEY = 'dramtrack.browser.v1';
 const L = window.DramLogic;
 const $ = id => document.getElementById(id);
@@ -35,15 +35,15 @@ function render() {
   $('collection-count').textContent = `(${state.rankings.length})`;
   $('currency').value = state.currency;
   $('rates-status').textContent = state.currency === 'USD' ? 'Library prices are in USD.' : rates[state.currency] ? 'Prices use the latest exchange rates fetched for this session.' : 'Exchange rates unavailable. Prices are shown in USD.';
-  $('collection').innerHTML = state.rankings.length ? `<div class="table-wrap"><table><thead><tr><th>RANK</th><th>BOTTLE</th><th>INTERNAL SCORE</th><th>PRICE</th><th>VALUE</th><th></th></tr></thead><tbody>${state.rankings.map((r, i) => {
-    const b = bottle(r.Name);
-    return `<tr><td class="rank">${i + 1}</td><td><div class="collection-bottle">${bottleArt(r.Name, true)}<div><button class="name-button" data-detail-rank="${i}">${escapeHtml(r.Name)}</button><div class="subtle">${escapeHtml(b?.Distillery || '')}</div></div></div></td><td>${r.Internal_Score.toFixed(2)}</td><td>${b ? price(b.Price) : '—'}</td><td>${b ? (b.Value ? b.Value.toFixed(2) : '\u2014') : '—'}</td><td><button data-remove="${i}" aria-label="Remove ${escapeHtml(r.Name)}" ${duel ? 'disabled' : ''}>Remove</button></td></tr>`;
-  }).join('')}</tbody></table></div>` : '<div class="empty">Your shelf starts with one bottle.<br>Search above for a whiskey you’ve tried.</div>';
+  $('collection').innerHTML = state.rankings.length ? `<div class="shelf-grid">${state.rankings.map((r, i) => {
+    return `<article class="shelf-card ${i === 0 ? 'favourite-card' : ''}"><div class="shelf-image"><span class="rank-badge">#${i + 1}${i === 0 ? ' &middot; Favourite' : ''}</span><button class="bottle-open" data-detail-rank="${i}" aria-label="View ${escapeHtml(r.Name)}">${bottleArt(r.Name)}</button></div><div class="shelf-info"><button class="name-button" data-detail-rank="${i}">${escapeHtml(r.Name)}</button><div class="shelf-bottom"><span class="taste-score" title="Library ratings reassigned in your personal preference order"><strong>${r.Internal_Score.toFixed(2)}</strong><span>Taste score</span></span><details class="bottle-menu"><summary aria-label="Actions for ${escapeHtml(r.Name)}">More</summary><div class="bottle-menu-items"><button data-refresh-image="${escapeHtml(r.Name)}">Refresh image</button><button data-remove="${i}" ${duel ? 'disabled' : ''}>Remove bottle</button></div></details></div></div></article>`;
+  }).join('')}</div>` : '<div class="empty"><h3>A shelf that reflects your taste.</h3><p>Search for a bottle you have tried. A few quick comparisons will find its place.</p><button class="primary" id="focus-search">Find your first bottle</button></div>';
   const recs = L.recommendations(state.library, state.rankings, state.ignored);
   $('recommendation-section').hidden = !state.rankings.length || !recs.length || !!duel;
+  $('workspace').classList.toggle('without-recommendations', $('recommendation-section').hidden);
   $('recommendations').innerHTML = recs.map(r => {
     const i = state.library.indexOf(r);
-    return `<article class="bottle-card">${bottleArt(r.Name)}<button class="name-button" data-detail="${i}">${escapeHtml(r.Name)}</button><p class="subtle">Rating ${r.Rating.toFixed(2)} · ${escapeHtml(price(r.Price))}</p><div class="actions"><button class="primary" data-try="${i}">Tried it</button><button data-refresh-image="${escapeHtml(r.Name)}" class="image-refresh" title="Fetch a fresh image">Refresh image</button><button data-ignore="${i}" aria-label="Ignore ${escapeHtml(r.Name)}">✕</button></div></article>`;
+    return `<article class="recommendation-card"><button class="bottle-open" data-detail="${i}" aria-label="View ${escapeHtml(r.Name)}">${bottleArt(r.Name)}</button><div class="recommendation-info"><button class="name-button" data-detail="${i}">${escapeHtml(r.Name)}</button><p class="subtle">${r.Rating.toFixed(2)} community rating</p><div class="actions"><button class="primary" data-try="${i}">Tried it &rarr;</button><button class="quiet" data-ignore="${i}" aria-label="Ignore ${escapeHtml(r.Name)}">Skip</button></div></div></article>`;
   }).join('');
   $('ignored').innerHTML = state.ignored.length ? state.ignored.map((name, i) => `<div><span>${escapeHtml(name)}</span><button data-unignore="${i}">Restore</button></div>`).join('') : '<p>No ignored bottles.</p>';
   renderSearch(); renderDuel(); DramImages.mount();
@@ -111,6 +111,7 @@ document.addEventListener('click', event => {
   const button = event.target.closest('button'); if (!button) return;
   const d = button.dataset;
   if (d.close) $(d.close).close();
+  else if (button.id === 'focus-search') { $('search').focus(); $('add-panel').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   else if (d.refreshImage !== undefined) { button.disabled = true; DramImages.refresh(d.refreshImage).finally(() => { button.disabled = false; }); }
   else if (d.try !== undefined) startDuel(state.library[Number(d.try)].Name);
   else if (d.detail !== undefined) detail(state.library[Number(d.detail)].Name);
@@ -173,7 +174,7 @@ function loadArchive(force = false) {
   archiveBusy = true;
   archiveStatus('Loading Reddit Whisky Network Review Archive...');
   $('refresh-library').disabled = true; $('setup-import').disabled = true;
-  const worker = new Worker('archive.js?v=5');
+  const worker = new Worker('archive.js?v=6');
   const done = () => { archiveBusy = false; worker.terminate(); $('refresh-library').disabled = false; $('setup-import').disabled = false; };
   const fail = message => { done(); archiveStatus(`Archive unavailable: ${message}. ${state.library.length ? 'Your saved library is still available.' : 'Use Retry archive to try again.'}`); };
   worker.onerror = () => fail('Could not load archive worker');

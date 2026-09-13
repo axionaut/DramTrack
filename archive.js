@@ -1,5 +1,5 @@
 /* Public archive loader; runs off the UI thread. No credentials required. */
-importScripts('logic.js?v=5');
+importScripts('logic.js?v=6');
 const SOURCE = 'https://docs.google.com/spreadsheets/d/1X1HTxkI6SqsdpNSkSSivMzpxNT-oeTbjFFDdEkXD30o/export?format=csv&gid=695409533';
 self.onmessage = async () => {
   try {

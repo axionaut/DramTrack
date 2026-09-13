@@ -4,21 +4,24 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#171b18">
   <title>DramTrack</title>
-  <link rel="icon" href="Logo.png"><link rel="stylesheet" href="styles.css?v=5">
-  <script defer src="logic.js?v=5"></script><script defer src="images.js?v=5"></script><script defer src="web.js?v=5"></script>
+  <link rel="icon" href="Logo.png"><link rel="stylesheet" href="styles.css?v=6">
+  <script defer src="logic.js?v=6"></script><script defer src="images.js?v=6"></script><script defer src="web.js?v=6"></script>
 </head>
 <body>
   <header><a class="brand" href="./"><img src="Logo.png" alt="">DramTrack<span>YOUR WHISKEY JOURNAL</span></a><button id="settings-button">Settings & data</button></header>
   <main>
-    <section class="intro"><p class="eyebrow">GOOD TASTE IS PERSONAL</p><h1>Find your next favourite.</h1><p>Keep the bottles you’ve tried in the order you love them.</p></section>
+    <section class="intro"><div><p class="eyebrow">YOUR TASTE, BOTTLE BY BOTTLE</p><h1>Your whiskey shelf.</h1></div><p>Rank what you love.<br>Discover what comes next.</p></section>
     <p id="notice" role="status" hidden></p>
-    <p id="archive-status" role="status">Loading Reddit Whisky Network Review Archive...</p>
+
     <section id="setup" class="panel" hidden><h2>Your whiskey library, ready for you</h2><p>Bottles and community ratings load automatically from the <a href="https://docs.google.com/spreadsheets/d/1X1HTxkI6SqsdpNSkSSivMzpxNT-oeTbjFFDdEkXD30o/edit#gid=695409533" target="_blank" rel="noopener">Reddit Whisky Network Review Archive</a>.</p><button id="setup-import" class="primary">Retry archive</button></section>
-    <section id="add-panel" class="panel"><label for="search">TRIED SOMETHING NEW?</label><div class="search-row"><input id="search" type="search" placeholder="Search your whiskey library…" autocomplete="off"><span id="library-count"></span></div><div id="search-results"></div></section>
+    <section id="add-panel" class="panel"><label for="search">TRIED SOMETHING NEW?</label><div class="search-row"><input id="search" type="search" placeholder="Find a bottle you have tried..." autocomplete="off"><span id="library-count"></span></div><div id="search-results"></div></section>
     <section id="duel" class="panel" hidden aria-live="polite"></section>
-    <section><div class="section-head"><div><p class="eyebrow">YOUR TASTE, YOUR ORDER</p><h2>My collection <span id="collection-count"></span></h2></div><button id="export-rankings">Export rankings</button></div><div id="collection"></div></section>
-    <section id="recommendation-section" hidden><div class="section-head"><div><p class="eyebrow">A LITTLE FURTHER UP THE SHELF</p><h2>Next to try</h2></div></div><div id="recommendations" class="cards"></div></section>
-    <footer>DramTrack &middot; v5 &middot; Saved on this device</footer>
+    <div id="workspace" class="workspace">
+      <section class="collection-section"><div class="section-head"><div><h2>My collection <span id="collection-count"></span></h2><p class="section-caption">Your favourites first. Select a bottle to explore it.</p></div><button id="export-rankings" class="quiet">Export rankings</button></div><div id="collection"></div></section>
+      <aside id="recommendation-section" hidden><div class="section-head"><div><p class="eyebrow">EXPLORE A LITTLE FURTHER</p><h2>Next to try</h2><p class="section-caption">Nearby community ratings, beyond your shelf.</p></div></div><div id="recommendations"></div></aside>
+    </div>
+    <p id="archive-status" role="status">Loading Reddit Whisky Network Review Archive...</p>
+    <footer>DramTrack &middot; v6 &middot; Saved on this device</footer>
   </main>
   <dialog id="settings"><div class="section-head"><h2>Settings & data</h2><button data-close="settings" aria-label="Close settings">✕</button></div><label for="currency">Display currency</label><select id="currency"><option>USD</option><option>INR</option><option>EUR</option><option>GBP</option><option>JPY</option><option>CAD</option><option>AUD</option></select><p id="rates-status"></p><h3>Your data</h3><p>Back up this browser’s data before moving devices. Google login and account sync are not connected yet.</p><div class="actions"><button id="refresh-library">Refresh archive</button><button id="import-rankings">Import rankings CSV</button><button id="import-ignored">Import ignored CSV</button><button id="backup">Download full backup</button><button id="restore">Restore backup</button></div><h3>Ignored bottles</h3><div id="ignored"></div></dialog>
   <dialog id="detail"><div id="detail-content"></div><button data-close="detail">Close</button></dialog>

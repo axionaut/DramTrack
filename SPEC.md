@@ -15,7 +15,7 @@ Static HTML/CSS/JavaScript application published to GitHub Pages by .github/work
 - Currency conversion falls back to explicitly labelled USD when unavailable.
 
 ## Release
-Version 3 loads the public archive automatically. Asset cache key: 5. Live validation snapshot: 53,982 rows, 51,635 accepted ratings, 17,457 bottles. The Pages workflow publishes only public assets. Existing personal CSVs remain local and untracked.
+Version 3 loads the public archive automatically. Asset cache key: 6. Live validation snapshot: 53,982 rows, 51,635 accepted ratings, 17,457 bottles. The Pages workflow publishes only public assets. Existing personal CSVs remain local and untracked.
 
 ## Bottle images (v4)
 - Restore original Bing bottle-name lookup in recommendations, duels, details and collection thumbnails.
@@ -26,3 +26,10 @@ Version 3 loads the public archive automatically. Asset cache key: 5. Live valid
 ## Full-width layout (v5)
 - Header and main content use the full viewport width with 32px desktop side padding and 18px mobile padding. Removed the 1200px cap.
 - Five desktop recommendation columns share the available width with zero-minimum grid tracks to avoid content forcing oversized columns.
+
+## Shelf layout (v6)
+- Replace the collection table with ranked bottle cards; highlight the first-ranked favourite and show taste score below each bottle.
+- Desktop: a flexible collection grid alongside a compact recommendation column. Tablet/mobile: stacked sections, with two collection cards per mobile row.
+- Compact heading and search bring the collection closer to the top. Move source status below the workspace.
+- Bottle details open from images or names. Collection More menus contain refresh/remove; recommendation cards expose Tried it and Skip, with image refresh in details.
+- Ranking, recommendation, archive and persistence behavior unchanged.
