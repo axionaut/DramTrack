@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = 2;
+const APP_VERSION = 3;
 const KEY = 'dramtrack.browser.v1';
 const L = window.DramLogic;
 const $ = id => document.getElementById(id);
@@ -10,7 +10,7 @@ let rates = { USD: 1 }, ratesLoaded = false;
 function notice(message) { $('notice').textContent = message; $('notice').hidden = !message; }
 function validate(data) {
   if (!data || data.version !== 1 || !Array.isArray(data.library) || !Array.isArray(data.rankings) || !Array.isArray(data.ignored) || !data.ignored.every(n => typeof n === 'string')) throw Error('Unsupported or invalid backup.');
-  return { version: 1, library: L.library(data.library), rankings: L.rankings(data.rankings), ignored: [...new Set(data.ignored)], currency: ['USD', 'INR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'].includes(data.currency) ? data.currency : 'USD' };
+  return { version: 1, source: data.source?.id === 'reddit-whisky-network' && Number.isFinite(data.source.fetchedAt) ? data.source : null, library: L.library(data.library), rankings: L.rankings(data.rankings), ignored: [...new Set(data.ignored)], currency: ['USD', 'INR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'].includes(data.currency) ? data.currency : 'USD' };
 }
 try { const saved = localStorage.getItem(KEY); if (saved !== null) state = validate(JSON.parse(saved)); }
 catch { storageBlocked = true; notice('Saved data could not be read. It has not been overwritten. Restore a valid backup to continue.'); }
@@ -20,6 +20,7 @@ function save(next, restore = false) {
   catch { notice('This browser could not save the change. Free storage or allow site storage, then try again.'); return false; }
 }
 function price(value) {
+  if (!value) return '\u2014';
   const curr = rates[state.currency] ? state.currency : 'USD';
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: curr }).format(value * (rates[curr] || 1));
 }
@@ -33,7 +34,7 @@ function render() {
   $('rates-status').textContent = state.currency === 'USD' ? 'Library prices are in USD.' : rates[state.currency] ? 'Prices use the latest exchange rates fetched for this session.' : 'Exchange rates unavailable. Prices are shown in USD.';
   $('collection').innerHTML = state.rankings.length ? `<div class="table-wrap"><table><thead><tr><th>RANK</th><th>BOTTLE</th><th>INTERNAL SCORE</th><th>PRICE</th><th>VALUE</th><th></th></tr></thead><tbody>${state.rankings.map((r, i) => {
     const b = bottle(r.Name);
-    return `<tr><td class="rank">${i + 1}</td><td><button class="name-button" data-detail-rank="${i}">${escapeHtml(r.Name)}</button><div class="subtle">${escapeHtml(b?.Distillery || '')}</div></td><td>${r.Internal_Score.toFixed(2)}</td><td>${b ? price(b.Price) : '—'}</td><td>${b ? b.Value.toFixed(2) : '—'}</td><td><button data-remove="${i}" aria-label="Remove ${escapeHtml(r.Name)}" ${duel ? 'disabled' : ''}>Remove</button></td></tr>`;
+    return `<tr><td class="rank">${i + 1}</td><td><button class="name-button" data-detail-rank="${i}">${escapeHtml(r.Name)}</button><div class="subtle">${escapeHtml(b?.Distillery || '')}</div></td><td>${r.Internal_Score.toFixed(2)}</td><td>${b ? price(b.Price) : '—'}</td><td>${b ? (b.Value ? b.Value.toFixed(2) : '\u2014') : '—'}</td><td><button data-remove="${i}" aria-label="Remove ${escapeHtml(r.Name)}" ${duel ? 'disabled' : ''}>Remove</button></td></tr>`;
   }).join('')}</tbody></table></div>` : '<div class="empty">Your shelf starts with one bottle.<br>Search above for a whiskey you’ve tried.</div>';
   const recs = L.recommendations(state.library, state.rankings, state.ignored);
   $('recommendation-section').hidden = !state.rankings.length || !recs.length || !!duel;
@@ -75,7 +76,7 @@ function renderDuel() {
 }
 function detail(name) {
   const b = bottle(name);
-  $('detail-content').innerHTML = `<div class="bottle-art" aria-hidden="true">🥃</div><h2>${escapeHtml(name)}</h2>${b ? `<p>${escapeHtml(b.Distillery)}</p><p>Library rating: ${b.Rating.toFixed(2)} · ${b.Count} reviews</p><p>${escapeHtml(price(b.Price))} · Value ${b.Value.toFixed(2)}</p>` : '<p>This bottle is not in the current library.</p>'}<h3>Community tasting notes</h3><p>No community notes available yet.</p>`;
+  $('detail-content').innerHTML = `<div class="bottle-art" aria-hidden="true">🥃</div><h2>${escapeHtml(name)}</h2>${b ? `<p>${escapeHtml(b.Distillery)}</p><p>Library rating: ${b.Rating.toFixed(2)} · ${b.Count} reviews</p><p>${escapeHtml(price(b.Price))} · Value ${(b.Value ? b.Value.toFixed(2) : '\u2014')}</p>` : '<p>This bottle is not in the current library.</p>'}<h3>Community tasting notes</h3><p>No community notes available yet.</p>`;
   $('detail').showModal();
 }
 function download(name, contents, type) {
@@ -125,7 +126,7 @@ document.addEventListener('click', event => {
 });
 $('settings-button').onclick = () => $('settings').showModal();
 $('search').oninput = renderSearch;
-for (const id of ['setup-import', 'import-library']) $(id).onclick = () => pick('library');
+for (const id of ['setup-import', 'refresh-library']) $(id).onclick = () => loadArchive(true);
 $('import-rankings').onclick = () => pick('rankings');
 $('import-ignored').onclick = () => pick('ignored');
 $('restore').onclick = () => pick('restore');
@@ -156,3 +157,31 @@ window.addEventListener('storage', event => {
   catch { storageBlocked = true; notice('Saved data changed in another tab and could not be read. Reload or restore a backup.'); }
 });
 render(); loadRates();
+
+let archiveBusy = false;
+function archiveStatus(message) { $('archive-status').textContent = message; }
+function loadArchive(force = false) {
+  if (archiveBusy || storageBlocked) return;
+  if (!force && state.source?.id === 'reddit-whisky-network' && state.library.length && Date.now() - state.source.fetchedAt < 86400000) {
+    archiveStatus(`Reddit Whisky Network Review Archive - ${state.library.length.toLocaleString()} bottles - Updated ${new Date(state.source.fetchedAt).toLocaleString()}`); return;
+  }
+  if (duel) { notice('Finish or cancel your duel before refreshing the archive.'); return; }
+  archiveBusy = true;
+  archiveStatus('Loading Reddit Whisky Network Review Archive...');
+  $('refresh-library').disabled = true; $('setup-import').disabled = true;
+  const worker = new Worker('archive.js?v=3');
+  const done = () => { archiveBusy = false; worker.terminate(); $('refresh-library').disabled = false; $('setup-import').disabled = false; };
+  const fail = message => { done(); archiveStatus(`Archive unavailable: ${message}. ${state.library.length ? 'Your saved library is still available.' : 'Use Retry archive to try again.'}`); };
+  worker.onerror = () => fail('Could not load archive worker');
+  worker.onmessage = ({ data }) => {
+    if (data.error) { fail(data.error); return; }
+    // Use the current state, so personal changes made while downloading are preserved.
+    if (duel) { done(); archiveStatus('Archive refresh deferred until your duel is finished. Use Refresh archive afterward.'); return; }
+    const saved = save({ ...state, library: data.library, source: data.source });
+    done();
+    if (saved) { render(); archiveStatus(`Reddit Whisky Network Review Archive - ${data.library.length.toLocaleString()} bottles - ${data.source.validReviews.toLocaleString()} rated reviews - Updated ${new Date(data.source.fetchedAt).toLocaleString()}`); }
+    else archiveStatus('Archive downloaded but could not be saved. Your existing library is unchanged.');
+  };
+  worker.postMessage({});
+}
+loadArchive();
