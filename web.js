@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = 4;
+const APP_VERSION = 5;
 const KEY = 'dramtrack.browser.v1';
 const L = window.DramLogic;
 const $ = id => document.getElementById(id);
@@ -173,7 +173,7 @@ function loadArchive(force = false) {
   archiveBusy = true;
   archiveStatus('Loading Reddit Whisky Network Review Archive...');
   $('refresh-library').disabled = true; $('setup-import').disabled = true;
-  const worker = new Worker('archive.js?v=3');
+  const worker = new Worker('archive.js?v=5');
   const done = () => { archiveBusy = false; worker.terminate(); $('refresh-library').disabled = false; $('setup-import').disabled = false; };
   const fail = message => { done(); archiveStatus(`Archive unavailable: ${message}. ${state.library.length ? 'Your saved library is still available.' : 'Use Retry archive to try again.'}`); };
   worker.onerror = () => fail('Could not load archive worker');

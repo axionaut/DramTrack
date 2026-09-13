@@ -15,10 +15,14 @@ Static HTML/CSS/JavaScript application published to GitHub Pages by .github/work
 - Currency conversion falls back to explicitly labelled USD when unavailable.
 
 ## Release
-Version 3 loads the public archive automatically. Asset cache key: 4. Live validation snapshot: 53,982 rows, 51,635 accepted ratings, 17,457 bottles. The Pages workflow publishes only public assets. Existing personal CSVs remain local and untracked.
+Version 3 loads the public archive automatically. Asset cache key: 5. Live validation snapshot: 53,982 rows, 51,635 accepted ratings, 17,457 bottles. The Pages workflow publishes only public assets. Existing personal CSVs remain local and untracked.
 
 ## Bottle images (v4)
 - Restore original Bing bottle-name lookup in recommendations, duels, details and collection thumbnails.
 - images.js stores validated image blobs in IndexedDB for 30 days, coalesces duplicate requests and limits downloads to three at once. Images load near the viewport. Failed refreshes retain cached images.
 - Refresh image reloads the lookup and updates visible copies for that bottle; search results are supplied by Bing and are not guaranteed to identify every bottle correctly.
 - Image cache stays separate from saved rankings. No credentials, backend or installation.
+
+## Full-width layout (v5)
+- Header and main content use the full viewport width with 32px desktop side padding and 18px mobile padding. Removed the 1200px cap.
+- Five desktop recommendation columns share the available width with zero-minimum grid tracks to avoid content forcing oversized columns.
